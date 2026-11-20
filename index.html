@@ -2697,5 +2697,59 @@
       initStoreFromSupabase();
     });
   </script>
+<script>
+(function() {
+  const triggers = Array.from(document.querySelectorAll('header button, header a, nav button, nav a, footer button, footer a')).filter(b => {
+    if (b.closest('[id*="admin" i], [class*="admin" i]')) return false;
+    const info = [
+      b.getAttribute('onclick') || '',
+      b.id || '',
+      b.title || '',
+      b.getAttribute('aria-label') || '',
+      b.textContent || ''
+    ].join(' ').toLowerCase();
+    return /admin|setting|pinmodal|إعدادات|لوحة|إدارة|تحكم/.test(info);
+  });
+  triggers.forEach(b => b.style.setProperty('display', 'none', 'important'));
+  const adminBtn = triggers[0] || null;
+
+  function triggerAdmin() {
+    if (adminBtn) {
+      adminBtn.click();
+    } else if (typeof openAdminPinModal === 'function') {
+      openAdminPinModal();
+    } else if (typeof openAdmin === 'function') {
+      openAdmin();
+    } else {
+      const m = document.getElementById('adminPinModal');
+      if (m) { m.classList.remove('hidden'); m.classList.add('open', 'active'); }
+    }
+  }
+
+  const header = document.querySelector('header, nav');
+  if (header) {
+    const brandEl = Array.from(header.querySelectorAll('*')).reverse().find(el =>
+      el.textContent.replace(/\s+/g, ' ').trim().includes('Syria') && !el.querySelector('button')
+    );
+    const tapTarget = (brandEl && brandEl.parentElement && !brandEl.parentElement.querySelector('button') && brandEl.parentElement !== header)
+      ? brandEl.parentElement
+      : brandEl;
+    if (tapTarget) {
+      let taps = 0, timer = null;
+      tapTarget.addEventListener('click', () => {
+        taps++;
+        clearTimeout(timer);
+        if (taps >= 5) {
+          taps = 0;
+          triggerAdmin();
+        } else {
+          timer = setTimeout(() => { taps = 0; }, 2000);
+        }
+      });
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
